@@ -1,0 +1,93 @@
+import seaborn
+import pandas as pd
+import numpy as np
+import codecademylib3
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+import codecademylib3
+
+# Load the data
+transactions = pd.read_csv('transactions_modified.csv')
+#print(transactions.head())
+#print(transactions.info())
+
+# How many fraudulent transactions?
+frad = transactions[transactions["isFraud"] == 1].count()
+# print(frad)
+
+# Summary statistics on amount column
+#print(transactions["amount"].describe())
+
+# Create isPayment field
+
+mask = (transactions['type'] == 'PAYMENT') | (transactions['type'] == 'DEBIT')
+
+# Assign 1 to rows where mask is True, and 0 otherwise
+transactions.loc[mask, 'isPayment'] = 1
+transactions.loc[~mask, 'isPayment'] = 0
+
+# Create isMovement field
+mask1 = (transactions["type"]=="CASH_OUT") | (transactions["type"] == "TRANSFER")
+
+transactions.loc[mask1,"isPayment"] = 1
+transactions.loc[mask1,"isPayment"] = 0
+
+
+# Create accountDiff field
+transactions["accountDiff"] = abs(transactions["oldbalanceOrg"]-transactions["oldbalanceDest"])
+
+# Create features and label variables
+features = transactions[["amount","isPayment","isMovement","accountDiff"]]
+label = transactions["isFraud"]
+
+# Split dataset
+features_train, features_test, label_train, label_test = train_test_split(features, label, test_size=0.3, random_state=5)
+
+
+# Normalize the features variables
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+features_train_scaled = scaler.fit_transform(features_train)
+features_test_scaled = scaler.transform(features_test)
+
+
+# Fit the model to the training data
+model = LogisticRegression()
+model.fit(features_train_scaled,label_train)
+
+# Score the model on the training data
+train_score = model.score(features_train_scaled, label_train)
+
+# Score the model on the test data
+test_score = model.score(features_test_scaled, label_test)
+print(test_score)
+
+# Print the model coefficients
+print(model.coef_)
+
+# New transaction data
+transaction1 = np.array([123456.78, 0.0, 1.0, 54670.1])
+transaction2 = np.array([98765.43, 1.0, 0.0, 8524.75])
+transaction3 = np.array([543678.31, 1.0, 0.0, 510025.5])
+
+# Create a new transaction
+your_transaction = np.array([2500.0, 0.0, 1.0, 100.0])
+
+# Combine new transactions into a single array
+all_transactions = np.vstack((transaction1, transaction2, transaction3, your_transaction))
+
+print(all_transactions)
+
+# Normalize the new transactions
+sample_transactions = scaler.transform(all_transactions)
+
+
+# Predict fraud on the new transactions
+predict = model.predict(sample_transactions)
+print(predict)
+# Show probabilities on the new 
+prob = model.predict_proba(sample_transactions)
+print(prob)
