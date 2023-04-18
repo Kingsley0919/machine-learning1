@@ -1,0 +1,47 @@
+import seaborn as sns
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+
+df = pd.read_csv(r"C:\Users\User\Desktop\machine learing codacademy\tennis_ace_starting\tennis_stats.csv")
+df.head()
+df.info()
+df.isnull().values.any()
+  
+corr_matrix = df.corr()
+
+# Compute the pairwise correlations between columns
+corr_matrix = df.corr()
+
+# Extract the maximum positive and negative correlation coefficient for each column pair
+max_pos_corr = corr_matrix.abs().unstack().sort_values(ascending=False).drop_duplicates()[::2]
+max_neg_corr = corr_matrix.unstack().sort_values(ascending=True).drop_duplicates()[::2]
+
+# Print the results
+print("Strongest positive correlations:")
+print(max_pos_corr)
+print("\nStrongest negative correlations:")
+print(max_neg_corr)
+features = df[['FirstServe','FirstServePointsWon','FirstServeReturnPointsWon',
+'SecondServePointsWon','SecondServeReturnPointsWon','Aces',
+'BreakPointsConverted','BreakPointsFaced','BreakPointsOpportunities',
+'BreakPointsSaved','DoubleFaults','ReturnGamesPlayed','ReturnGamesWon',
+'ReturnPointsWon','ServiceGamesPlayed','ServiceGamesWon','TotalPointsWon',
+'TotalServicePointsWon']]
+outcome = df[['Winnings']]
+
+features_train, features_test, outcome_train, outcome_test = train_test_split(features, outcome, train_size = 0.8)
+
+# create a LinearRegression model object
+model = LinearRegression()
+
+# fit the model to the training data
+model.fit(features_train, outcome_train)
+
+# evaluate the model on the testing data
+score = model.score(features_test, outcome_test)
+print('Model score:', score)
+
+# make predictions on the testing data
+prediction = model.predict(features_test)
