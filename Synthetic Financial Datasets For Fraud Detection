@@ -1,15 +1,17 @@
 import seaborn
 import pandas as pd
 import numpy as np
-import codecademylib3
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-import codecademylib3
+
+
+
+transactions = pd.read_csv(r"C:\Users\User\Desktop\machine learing codacademy\PS_20174392719_1491204439457_log.csv")
 
 # Load the data
-transactions = pd.read_csv('transactions_modified.csv')
+
 #print(transactions.head())
 #print(transactions.info())
 
@@ -22,17 +24,10 @@ frad = transactions[transactions["isFraud"] == 1].count()
 
 # Create isPayment field
 
-mask = (transactions['type'] == 'PAYMENT') | (transactions['type'] == 'DEBIT')
-
-# Assign 1 to rows where mask is True, and 0 otherwise
-transactions.loc[mask, 'isPayment'] = 1
-transactions.loc[~mask, 'isPayment'] = 0
+transactions['isPayment'] = transactions['type'].apply(lambda x: 1 if x in ["PAYMENT", "DEBIT"] else 0)
 
 # Create isMovement field
-mask1 = (transactions["type"]=="CASH_OUT") | (transactions["type"] == "TRANSFER")
-
-transactions.loc[mask1,"isPayment"] = 1
-transactions.loc[mask1,"isPayment"] = 0
+transactions['isMovement'] = transactions['type'].apply(lambda x: 1 if x in ["CASH_OUT","TRANSFER"] else 0)
 
 
 # Create accountDiff field
