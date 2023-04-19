@@ -1,0 +1,81 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, precision_score, recall_score, f1_score, roc_curve, roc_auc_score
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Replace 'file.xlsx' with the path to your Excel file
+file_path = file_path = r'C:\Users\User\Desktop\machine learing codacademy\adult.xlsx'
+
+col_names = ['age', 'workclass', 'fnlwgt','education', 'education-num', 
+'marital-status', 'occupation', 'relationship', 'race', 'sex',
+'capital-gain','capital-loss', 'hours-per-week','native-country', 'income']
+# Read the Excel file into a DataFrame
+
+df = pd.read_excel(file_path, engine='openpyxl',header = None, names = col_names)
+
+# Print the content of the DataFrame
+#print(df.head())
+
+#1. Check Class Imbalance
+
+# Count the number of occurrences of each unique value in the "income" column
+income_counts = df["income"].value_counts()
+
+# Divide each count by the total number of rows in the DataFrame to get the probability
+income_probabilities = income_counts / len(df)
+
+# Create a new DataFrame with the probabilities
+income_table = pd.DataFrame({"Probability": income_probabilities})
+
+# Print the table
+print(income_table)
+
+#2. Create feature dataframe X with feature columns and dummy variables for categorical features
+feature_cols = ['age','capital-gain', 'capital-loss', 'hours-per-week']
+df_dummies = df[feature_cols]
+X = pd.get_dummies(df_dummies, drop_first=True)
+#3. Check logistic regression assumption: feature correlation
+corr_matrix = X.corr()
+# sns.heatmap(corr_matrix, cmap="YlGnBu", annot=True, fmt=".2f")
+#4. Create output variable y which is binary, 0 when income is less than 50k, 1 when it is greather than 50k
+y = np.where(df["income"] == " <=50K", 0, 1)
+
+#5a. Split data into a train and test set
+X_train,X_test,y_train,y_test = train_test_split(X,y,test_size = 0.3, random_state=2)
+
+
+#5b. Fit LR model with sklearn on train set, and predicting on the test set
+model = LogisticRegression(C=0.05, penalty='l1', solver='liblinear')
+
+model.fit(X_train,y_train)
+
+#6. Print model parameters and coefficients
+print(model.coef_)
+print(model.intercept_)
+
+
+#7. Evaluate the predictions of the model on the test set. Print the confusion matrix and accuracy score.
+y_pred = model.predict(X_test)
+Accuracy = accuracy_score(y_test,y_pred)
+print(Accuracy)
+
+
+cm = confusion_matrix(y_test, y_pred)
+
+print('Confusion Matrix on test set:')
+print(cm)
+row_data = [
+    {'age': 15, 'capital-gain': 50000, 'capital-loss': 0, 'hours-per-week': 40},
+    {'age': 25, 'capital-gain': 20000, 'capital-loss': 1000, 'hours-per-week': 50}
+]
+
+# Create a DataFrame from the list of dictionaries
+X_new = pd.DataFrame(row_data)
+
+# Make predictions on the new data
+y_pred = model.predict(X_new)
+print(y_pred)
